@@ -1,0 +1,10 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyAQOSAbzVHd0ZDfqb5HDBxKwKhysC6nByw",
+  authDomain: "todo-1f7d4.firebaseapp.com",
+  databaseURL: "https://todo-1f7d4-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "todo-1f7d4",
+  storageBucket: "todo-1f7d4.firebasestorage.app",
+  messagingSenderId: "223394119650",
+  appId: "1:223394119650:web:3e36c31b2183fd80dd03bb",
+  measurementId: "G-82D4YZ4T12"
+};

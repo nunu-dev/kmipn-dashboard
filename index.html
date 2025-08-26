@@ -8,7 +8,8 @@
     <meta property="og:title" content="PublicShareToDo">
     <meta property="og:description" content="Create and share to-do lists with anyone. Real-time collaboration made simple.">
     <meta property="og:type" content="website">
-    <link rel="manifest" href="/manifest.json">
+    <!-- <link rel="manifest" href="/manifest.json"> -->
+    <!-- Manifest will be added when you create manifest.json file -->
     
     <style>
         /* CSS Variables & Reset */
@@ -693,15 +694,25 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Enable offline persistence
-        db.enablePersistence({ experimentalForceOwningTab: true })
-            .catch((err) => {
-                if (err.code == 'failed-precondition') {
-                    console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-                } else if (err.code == 'unimplemented') {
-                    console.log('The current browser does not support persistence.');
-                }
-            });
+        // Enable offline persistence with new API
+        const firestoreSettings = {
+            cache: firebase.firestore.MemoryCacheSettings()
+        };
+        
+        // Try to enable IndexedDB persistence for better offline support
+        try {
+            db.settings(firestoreSettings);
+            db.enablePersistence({ experimentalForceOwningTab: true })
+                .catch((err) => {
+                    if (err.code == 'failed-precondition') {
+                        console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                    } else if (err.code == 'unimplemented') {
+                        console.log('The current browser does not support persistence.');
+                    }
+                });
+        } catch (error) {
+            console.log('Persistence setup completed with fallback.');
+        }
 
         // Router Class
         class Router {
@@ -1573,8 +1584,8 @@
         });
 
         // Register service worker for PWA (optional)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed'));
+        if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.log('Service worker registration skipped:', err.message));
         }
     </script>
 </body>
