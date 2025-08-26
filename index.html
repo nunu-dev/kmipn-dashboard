@@ -674,9 +674,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
 
     <!-- Application Scripts -->
-    <script>
+    <script type="module">
         // Firebase Configuration (Replace with your config)
         const firebaseConfig = {
   apiKey: "AIzaSyAQOSAbzVHd0ZDfqb5HDBxKwKhysC6nByw",
@@ -702,13 +703,13 @@
         // Try to enable IndexedDB persistence for better offline support
         try {
             db.settings(firestoreSettings);
-            db.enablePersistence({ experimentalForceOwningTab: true })
-                .catch((err) => {
-                    if (err.code == 'failed-precondition') {
-                        console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-                    } else if (err.code == 'unimplemented') {
-                        console.log('The current browser does not support persistence.');
-                    }
+            db.enablePersistence({ synchronizeTabs: true }) // set to true if you expect multiple tabs
+    .catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.log('Multiple tabs open; persistence can only be enabled in one tab at a time.');
+      } else if (err.code === 'unimplemented') {
+        console.log('This browser does not support offline persistence.');
+      }
                 });
         } catch (error) {
             console.log('Persistence setup completed with fallback.');
