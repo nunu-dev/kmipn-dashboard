@@ -1,98 +1,530 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-User To-Do List App</title>
+    <title>PublicShareToDo - Collaborative Task Management</title>
+    <meta name="description" content="A collaborative to-do list app with public sharing, real-time sync, and team collaboration features">
+    <meta property="og:title" content="PublicShareToDo">
+    <meta property="og:description" content="Create and share to-do lists with anyone. Real-time collaboration made simple.">
+    <meta property="og:type" content="website">
+    <link rel="manifest" href="/manifest.json">
+    
     <style>
+        /* CSS Variables & Reset */
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+            --radius: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --dark: #f9fafb;
+                --light: #111827;
+                --border: #374151;
+                --gray: #9ca3af;
+            }
+            body { background: #0f172a; }
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark: #1f2937;
-            --light: #f3f4f6;
-            --white: #ffffff;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
         }
 
-        .background-shapes {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.1;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .shape:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            background: var(--white);
-            top: 10%;
-            left: 10%;
-            animation-duration: 25s;
-        }
-
-        .shape:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            background: var(--secondary);
-            top: 60%;
-            right: 10%;
-            animation-duration: 30s;
-        }
-
-        .shape:nth-child(3) {
-            width: 400px;
-            height: 400px;
-            background: var(--primary);
-            bottom: -10%;
-            left: 30%;
-            animation-duration: 35s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-50px) rotate(180deg); }
-        }
-
+        /* Layout Components */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            animation: slideIn 0.5s ease-out;
+            padding: 0 20px;
         }
 
-        @keyframes slideIn {
+        .nav {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray);
+        }
+
+        .btn-ghost:hover {
+            background: var(--border);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 5rem 0;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: fadeInUp 0.6s ease 0.2s backwards;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            animation: fadeInUp 0.6s ease 0.4s backwards;
+        }
+
+        /* Features Grid */
+        .features {
+            padding: 4rem 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        /* List Styles */
+        .list-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item:hover {
+            background: var(--border);
+        }
+
+        .list-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Task Styles */
+        .task-item {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: var(--transition);
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-title {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .priority-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .priority-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .priority-normal {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .priority-low {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideIn 0.3s ease;
+            min-width: 300px;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-action {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        /* Share Dialog */
+        .share-options {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .share-option {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .share-option:hover,
+        .share-option.active {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .share-link {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .share-link input {
+            flex: 1;
+        }
+
+        /* Members List */
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            margin-bottom: 0.5rem;
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: 500;
+        }
+
+        .member-role {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -100,724 +532,151 @@
             }
         }
 
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-lg);
-            text-align: center;
-        }
-
-        h1 {
-            color: var(--dark);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            color: #6b7280;
-            font-size: 1.1rem;
-        }
-
-        .auth-section {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease;
-        }
-
-        .auth-section:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .auth-form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15counterclockwise;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .input-group {
-            position: relative;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 12px 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: var(--light);
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: var(--white);
-            transform: scale(1.02);
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: var(--white);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: var(--white);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger), #dc2626);
-            color: var(--white);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, var(--warning), #d97706);
-            color: var(--white);
-        }
-
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: var(--white);
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .user-info h3 {
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--white);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .main-content {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--shadow-lg);
-            display: none;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .todo-input-section {
-            margin-bottom: 30px;
-        }
-
-        .todo-form {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .todo-input {
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-        }
-
-        .todo-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .filter-section {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: var(--light);
-            border-radius: 12px;
-        }
-
-        .filter-btn {
-            padding: 8px 16px;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            background: var(--white);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .filter-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            color: var(--white);
-            border-color: var(--primary);
-        }
-
-        .stats-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            padding: 15px;
-            background: linear-gradient(135deg, var(--light), var(--white));
-            border-radius: 12px;
-            text-align: center;
-            border: 2px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
-
-        .todos-container {
-            max-height: 500px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .todos-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .todos-container::-webkit-scrollbar-track {
-            background: var(--light);
-            border-radius: 10px;
-        }
-
-        .todos-container::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 10px;
-        }
-
-        .todo-item {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            background: var(--white);
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .todo-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background: var(--primary);
-            transform: scaleY(0);
-            transition: transform 0.3s ease;
-        }
-
-        .todo-item:hover::before {
-            transform: scaleY(1);
-        }
-
-        .todo-item:hover {
-            transform: translateX(5px);
-            box-shadow: var(--shadow);
-        }
-
-        .todo-item.completed {
-            opacity: 0.7;
-            background: var(--light);
-        }
-
-        .todo-item.completed .todo-text {
-            text-decoration: line-through;
-            color: #9ca3af;
-        }
-
-        .todo-checkbox {
-            width: 24px;
-            height: 24px;
-            margin-right: 15px;
-            cursor: pointer;
-            accent-color: var(--primary);
-            transform: scale(1.2);
-        }
-
-        .todo-content {
-            flex: 1;
-        }
-
-        .todo-text {
-            font-size: 1.1rem;
-            color: var(--dark);
-            margin-bottom: 5px;
-        }
-
-        .todo-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-
-        .todo-user {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .todo-priority {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .priority-high {
-            background: #fee2e2;
-            color: var(--danger);
-        }
-
-        .priority-medium {
-            background: #fed7aa;
-            color: var(--warning);
-        }
-
-        .priority-low {
-            background: #d1fae5;
-            color: var(--success);
-        }
-
-        .todo-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            width: 35px;
-            height: 35px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            font-size: 1.2rem;
-        }
-
-        .edit-btn {
-            background: #dbeafe;
-            color: #3b82f6;
-        }
-
-        .edit-btn:hover {
-            background: #3b82f6;
-            color: var(--white);
-            transform: scale(1.1);
-        }
-
-        .delete-btn {
-            background: #fee2e2;
-            color: var(--danger);
-        }
-
-        .delete-btn:hover {
-            background: var(--danger);
-            color: var(--white);
-            transform: scale(1.1);
-        }
-
-        .online-users {
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            background: var(--white);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: var(--shadow);
-            max-width: 200px;
-            z-index: 100;
-        }
-
-        .online-users h4 {
-            color: var(--dark);
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
-
-        .online-user {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px;
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-
-        .online-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #9ca3af;
-        }
-
-        .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--white);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: var(--shadow-lg);
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
+        @keyframes slideIn {
             from {
-                transform: translate(-50%, -40%);
+                transform: translateX(100%);
                 opacity: 0;
             }
             to {
-                transform: translate(-50%, -50%);
+                transform: translateX(0);
                 opacity: 1;
             }
         }
 
-        .modal-header {
-            margin-bottom: 20px;
-        }
-
-        .modal-header h2 {
-            color: var(--dark);
-        }
-
-        .modal-body {
-            margin-bottom: 20px;
-        }
-
-        .modal-body input,
-        .modal-body select {
-            width: 100%;
-            margin-bottom: 15px;
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 15px 30px;
-            border-radius: 12px;
-            color: var(--white);
-            font-weight: 500;
-            z-index: 2000;
-            animation: slideDown 0.3s ease;
-            display: none;
-        }
-
-        @keyframes slideDown {
+        @keyframes slideUp {
             from {
-                transform: translateX(-50%) translateY(-100%);
+                transform: translateY(20px);
+                opacity: 0;
             }
             to {
-                transform: translateX(-50%) translateY(0);
+                transform: translateY(0);
+                opacity: 1;
             }
         }
 
-        .notification.success {
-            background: var(--success);
-        }
-
-        .notification.error {
-            background: var(--danger);
-        }
-
-        .notification.warning {
-            background: var(--warning);
-        }
-
+        /* Responsive Design */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8rem;
+            .hero h1 {
+                font-size: 2rem;
             }
 
-            .todo-form {
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero-buttons {
                 flex-direction: column;
             }
 
-            .filter-section {
-                justify-content: center;
+            .app-container {
+                flex-direction: column;
             }
 
-            .online-users {
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                max-height: 200px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Print Styles */
+        @media print {
+            .nav, .sidebar, .btn, .modal {
                 display: none;
             }
-
-            .stats-section {
-                grid-template-columns: 1fr;
+            
+            .main-content {
+                width: 100%;
+                padding: 0;
             }
         }
     </style>
 </head>
 <body>
-    <div class="background-shapes">
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
-    </div>
-
-    <div class="container">
-        <div class="header">
-            <h1>✨ Multi-User To-Do List</h1>
-            <p class="subtitle">Kolaborasi real-time dengan tim Anda</p>
-        </div>
-
-        <div class="auth-section" id="authSection">
-            <div class="auth-form">
-                <div class="input-group">
-                    <input type="email" id="emailInput" placeholder="Email Anda" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="passwordInput" placeholder="Password" required>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="usernameInput" placeholder="Username (untuk register)">
-                </div>
-                <button class="btn btn-primary" onclick="login()">Login</button>
-                <button class="btn btn-success" onclick="register()">Register</button>
-            </div>
-        </div>
-
-        <div class="main-content" id="mainContent">
-            <div class="user-info">
-                <h3>
-                    <span class="user-avatar" id="userAvatar">U</span>
-                    Selamat datang, <span id="currentUser">User</span>!
-                </h3>
-                <button class="btn btn-danger" onclick="logout()">Logout</button>
-            </div>
-
-            <div class="todo-input-section">
-                <div class="todo-form">
-                    <input type="text" id="todoInput" class="todo-input" placeholder="Tambahkan tugas baru...">
-                    <select id="prioritySelect">
-                        <option value="low">Low Priority</option>
-                        <option value="medium">Medium Priority</option>
-                        <option value="high">High Priority</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="addTodo()">Tambah</button>
-                </div>
-            </div>
-
-            <div class="filter-section">
-                <button class="filter-btn active" onclick="filterTodos('all', this)">Semua</button>
-                <button class="filter-btn" onclick="filterTodos('active', this)">Aktif</button>
-                <button class="filter-btn" onclick="filterTodos('completed', this)">Selesai</button>
-                <button class="filter-btn" onclick="filterTodos('my', this)">Tugas Saya</button>
-                <button class="filter-btn" onclick="filterTodos('high', this)">High Priority</button>
-            </div>
-
-            <div class="stats-section">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalTodos">0</div>
-                    <div class="stat-label">Total Tugas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="activeTodos">0</div>
-                    <div class="stat-label">Tugas Aktif</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="completedTodos">0</div>
-                    <div class="stat-label">Selesai</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="myTodos">0</div>
-                    <div class="stat-label">Tugas Saya</div>
-                </div>
-            </div>
-
-            <div class="todos-container" id="todosContainer">
-                <div class="empty-state">
-                    <div class="empty-icon">📝</div>
-                    <h3>Belum ada tugas</h3>
-                    <p>Mulai tambahkan tugas pertama Anda!</p>
+    <!-- Navigation -->
+    <nav class="nav" role="navigation">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="#/" class="nav-brand">📝 PublicShareToDo</a>
+                <div class="nav-menu">
+                    <div id="authStatus" class="auth-status">
+                        <button id="signInBtn" class="btn btn-primary">Sign In</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <div class="online-users" id="onlineUsers" style="display: none;">
-        <h4>👥 Online Users</h4>
-        <div id="onlineUsersList"></div>
-    </div>
+    <!-- Main App Container -->
+    <div id="app"></div>
 
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Edit Tugas</h2>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="editTodoInput" placeholder="Edit tugas...">
-                <select id="editPrioritySelect">
-                    <option value="low">Low Priority</option>
-                    <option value="medium">Medium Priority</option>
-                    <option value="high">High Priority</option>
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="saveEdit()">Simpan</button>
-                <button class="btn" onclick="closeModal()">Batal</button>
-            </div>
-        </div>
-    </div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
-    <div class="notification" id="notification"></div>
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
+    <!-- Application Scripts -->
     <script>
-        // Firebase Configuration
-        // PENTING: Ganti dengan konfigurasi Firebase Anda sendiri!
+        // Firebase Configuration (Replace with your config)
         const firebaseConfig = {
   apiKey: "AIzaSyAQOSAbzVHd0ZDfqb5HDBxKwKhysC6nByw",
   authDomain: "todo-1f7d4.firebaseapp.com",
@@ -830,502 +689,892 @@
 };
 
         // Initialize Firebase
-        let app, auth, database;
-        let currentUser = null;
-        let todos = [];
-        let editingTodoId = null;
-        let currentFilter = 'all';
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // Check if Firebase config is set
-        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-            showNotification('error', 'Silakan konfigurasi Firebase terlebih dahulu!');
-            document.getElementById('authSection').innerHTML += `
-                <div style="background: #fee2e2; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <h3 style="color: #dc2626; margin-bottom: 10px;">⚠️ Konfigurasi Firebase Diperlukan</h3>
-                    <p style="color: #991b1b; margin-bottom: 15px;">Untuk menggunakan aplikasi ini dengan fitur multi-user, ikuti langkah berikut:</p>
-                    <ol style="color: #991b1b; padding-left: 20px;">
-                        <li>Buka <a href="https://console.firebase.google.com/" target="_blank" style="color: #3b82f6;">Firebase Console</a></li>
-                        <li>Buat project baru (gratis)</li>
-                        <li>Aktifkan Authentication (Email/Password)</li>
-                        <li>Aktifkan Realtime Database</li>
-                        <li>Copy konfigurasi Firebase Anda</li>
-                        <li>Ganti nilai firebaseConfig di kode JavaScript</li>
-                        <li>Deploy ke GitHub Pages</li>
-                    </ol>
-                    <p style="color: #991b1b; margin-top: 15px;"><strong>Demo Mode:</strong> Saat ini aplikasi berjalan dalam mode demo dengan localStorage.</p>
-                </div>
-            `;
-            
-            // Fallback ke localStorage jika Firebase belum dikonfigurasi
-            initLocalStorageMode();
-        } else {
-            // Initialize Firebase dengan konfigurasi yang sudah diset
-            app = firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            database = firebase.database();
-            
-            // Check authentication state
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    currentUser = user;
-                    showMainContent();
-                    loadTodos();
-                    updateOnlineStatus(true);
-                    listenToOnlineUsers();
-                } else {
-                    hideMainContent();
-                    updateOnlineStatus(false);
+        // Enable offline persistence
+        db.enablePersistence({ experimentalForceOwningTab: true })
+            .catch((err) => {
+                if (err.code == 'failed-precondition') {
+                    console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                } else if (err.code == 'unimplemented') {
+                    console.log('The current browser does not support persistence.');
                 }
             });
-        }
 
-        // Local Storage Mode (Demo)
-        function initLocalStorageMode() {
-            // Simulasi authentication dengan localStorage
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showMainContent();
-                loadLocalTodos();
-            }
-        }
-
-        function loadLocalTodos() {
-            const savedTodos = localStorage.getItem('todos');
-            if (savedTodos) {
-                todos = JSON.parse(savedTodos);
-                renderTodos();
-                updateStats();
-            }
-        }
-
-        function saveLocalTodos() {
-            localStorage.setItem('todos', JSON.stringify(todos));
-        }
-
-        // Authentication Functions
-        function login() {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-
-            if (!email || !password) {
-                showNotification('error', 'Email dan password harus diisi!');
-                return;
+        // Router Class
+        class Router {
+            constructor() {
+                this.routes = {};
+                this.currentRoute = null;
+                window.addEventListener('hashchange', () => this.handleRoute());
+                window.addEventListener('load', () => this.handleRoute());
             }
 
-            if (auth) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        showNotification('success', 'Login berhasil!');
-                    })
-                    .catch((error) => {
-                        showNotification('error', 'Login gagal: ' + error.message);
-                    });
-            } else {
-                // Local mode
-                currentUser = {
-                    email: email,
-                    displayName: email.split('@')[0],
-                    uid: Date.now().toString()
-                };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showMainContent();
-                loadLocalTodos();
-                showNotification('success', 'Login berhasil (Mode Demo)!');
-            }
-        }
-
-        function register() {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            const username = document.getElementById('usernameInput').value;
-
-            if (!email || !password || !username) {
-                showNotification('error', 'Semua field harus diisi untuk registrasi!');
-                return;
+            addRoute(path, handler) {
+                this.routes[path] = handler;
             }
 
-            if (auth) {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        // Update display name
-                        return userCredential.user.updateProfile({
-                            displayName: username
-                        });
-                    })
-                    .then(() => {
-                        showNotification('success', 'Registrasi berhasil!');
-                    })
-                    .catch((error) => {
-                        showNotification('error', 'Registrasi gagal: ' + error.message);
-                    });
-            } else {
-                // Local mode
-                currentUser = {
-                    email: email,
-                    displayName: username,
-                    uid: Date.now().toString()
-                };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showMainContent();
-                showNotification('success', 'Registrasi berhasil (Mode Demo)!');
-            }
-        }
-
-        function logout() {
-            if (auth) {
-                updateOnlineStatus(false);
-                auth.signOut().then(() => {
-                    showNotification('success', 'Logout berhasil!');
-                });
-            } else {
-                // Local mode
-                localStorage.removeItem('currentUser');
-                currentUser = null;
-                hideMainContent();
-                showNotification('success', 'Logout berhasil!');
-            }
-        }
-
-        // UI Functions
-        function showMainContent() {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            document.getElementById('onlineUsers').style.display = 'block';
-            
-            const displayName = currentUser.displayName || currentUser.email.split('@')[0];
-            document.getElementById('currentUser').textContent = displayName;
-            document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-        }
-
-        function hideMainContent() {
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('onlineUsers').style.display = 'none';
-            
-            // Clear inputs
-            document.getElementById('emailInput').value = '';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('usernameInput').value = '';
-        }
-
-        // Todo CRUD Operations
-        function addTodo() {
-            const todoText = document.getElementById('todoInput').value.trim();
-            const priority = document.getElementById('prioritySelect').value;
-
-            if (!todoText) {
-                showNotification('warning', 'Tugas tidak boleh kosong!');
-                return;
-            }
-
-            const newTodo = {
-                id: Date.now().toString(),
-                text: todoText,
-                completed: false,
-                priority: priority,
-                userId: currentUser.uid,
-                userName: currentUser.displayName || currentUser.email.split('@')[0],
-                createdAt: new Date().toISOString(),
-                completedAt: null
-            };
-
-            if (database) {
-                database.ref('todos/' + newTodo.id).set(newTodo)
-                    .then(() => {
-                        document.getElementById('todoInput').value = '';
-                        showNotification('success', 'Tugas berhasil ditambahkan!');
-                    })
-                    .catch((error) => {
-                        showNotification('error', 'Gagal menambahkan tugas: ' + error.message);
-                    });
-            } else {
-                // Local mode
-                todos.push(newTodo);
-                saveLocalTodos();
-                renderTodos();
-                updateStats();
-                document.getElementById('todoInput').value = '';
-                showNotification('success', 'Tugas berhasil ditambahkan!');
-            }
-        }
-
-        function toggleTodo(id) {
-            if (database) {
-                const todoRef = database.ref('todos/' + id);
-                todoRef.once('value', (snapshot) => {
-                    const todo = snapshot.val();
-                    todoRef.update({
-                        completed: !todo.completed,
-                        completedAt: !todo.completed ? new Date().toISOString() : null
-                    });
-                });
-            } else {
-                // Local mode
-                const todo = todos.find(t => t.id === id);
-                if (todo) {
-                    todo.completed = !todo.completed;
-                    todo.completedAt = todo.completed ? new Date().toISOString() : null;
-                    saveLocalTodos();
-                    renderTodos();
-                    updateStats();
-                }
-            }
-        }
-
-        function editTodo(id) {
-            const todo = todos.find(t => t.id === id);
-            if (todo) {
-                editingTodoId = id;
-                document.getElementById('editTodoInput').value = todo.text;
-                document.getElementById('editPrioritySelect').value = todo.priority;
-                document.getElementById('editModal').style.display = 'block';
-            }
-        }
-
-        function saveEdit() {
-            const newText = document.getElementById('editTodoInput').value.trim();
-            const newPriority = document.getElementById('editPrioritySelect').value;
-
-            if (!newText) {
-                showNotification('warning', 'Tugas tidak boleh kosong!');
-                return;
-            }
-
-            if (database) {
-                database.ref('todos/' + editingTodoId).update({
-                    text: newText,
-                    priority: newPriority
-                }).then(() => {
-                    closeModal();
-                    showNotification('success', 'Tugas berhasil diupdate!');
-                });
-            } else {
-                // Local mode
-                const todo = todos.find(t => t.id === editingTodoId);
-                if (todo) {
-                    todo.text = newText;
-                    todo.priority = newPriority;
-                    saveLocalTodos();
-                    renderTodos();
-                    updateStats();
-                    closeModal();
-                    showNotification('success', 'Tugas berhasil diupdate!');
-                }
-            }
-        }
-
-        function deleteTodo(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus tugas ini?')) {
-                if (database) {
-                    database.ref('todos/' + id).remove()
-                        .then(() => {
-                            showNotification('success', 'Tugas berhasil dihapus!');
-                        });
-                } else {
-                    // Local mode
-                    todos = todos.filter(t => t.id !== id);
-                    saveLocalTodos();
-                    renderTodos();
-                    updateStats();
-                    showNotification('success', 'Tugas berhasil dihapus!');
-                }
-            }
-        }
-
-        function loadTodos() {
-            const todosRef = database.ref('todos');
-            
-            todosRef.on('value', (snapshot) => {
-                todos = [];
-                snapshot.forEach((childSnapshot) => {
-                    todos.push({
-                        id: childSnapshot.key,
-                        ...childSnapshot.val()
-                    });
-                });
+            handleRoute() {
+                const hash = window.location.hash || '#/';
+                const path = hash.split('?')[0];
                 
-                // Sort by creation date
-                todos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                // Find matching route
+                for (const [routePath, handler] of Object.entries(this.routes)) {
+                    const match = this.matchRoute(routePath, path);
+                    if (match) {
+                        this.currentRoute = path;
+                        handler(match.params, this.getQueryParams());
+                        return;
+                    }
+                }
                 
-                renderTodos();
-                updateStats();
-            });
-        }
-
-        function renderTodos() {
-            const container = document.getElementById('todosContainer');
-            let filteredTodos = [...todos];
-
-            // Apply filter
-            switch(currentFilter) {
-                case 'active':
-                    filteredTodos = todos.filter(t => !t.completed);
-                    break;
-                case 'completed':
-                    filteredTodos = todos.filter(t => t.completed);
-                    break;
-                case 'my':
-                    filteredTodos = todos.filter(t => t.userId === currentUser.uid);
-                    break;
-                case 'high':
-                    filteredTodos = todos.filter(t => t.priority === 'high');
-                    break;
+                // 404 handler
+                this.routes['*'] && this.routes['*']();
             }
 
-            if (filteredTodos.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <h3>Tidak ada tugas</h3>
-                        <p>Belum ada tugas dalam kategori ini</p>
-                    </div>
+            matchRoute(routePath, actualPath) {
+                const routeParts = routePath.split('/');
+                const actualParts = actualPath.split('/');
+                
+                if (routeParts.length !== actualParts.length) return null;
+                
+                const params = {};
+                
+                for (let i = 0; i < routeParts.length; i++) {
+                    if (routeParts[i].startsWith(':')) {
+                        params[routeParts[i].slice(1)] = actualParts[i];
+                    } else if (routeParts[i] !== actualParts[i]) {
+                        return null;
+                    }
+                }
+                
+                return { params };
+            }
+
+            getQueryParams() {
+                const hash = window.location.hash;
+                const queryIndex = hash.indexOf('?');
+                if (queryIndex === -1) return {};
+                
+                const queryString = hash.slice(queryIndex + 1);
+                const params = {};
+                const pairs = queryString.split('&');
+                
+                for (const pair of pairs) {
+                    const [key, value] = pair.split('=');
+                    params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+                }
+                
+                return params;
+            }
+
+            navigate(path) {
+                window.location.hash = path;
+            }
+        }
+
+        // UI Helper Class
+        class UI {
+            static showToast(message, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <span>${this.escapeHtml(message)}</span>
+                    <button onclick="this.parentElement.remove()" class="btn btn-ghost">✕</button>
                 `;
-                return;
+                container.appendChild(toast);
+                
+                setTimeout(() => toast.remove(), 5000);
             }
 
-            container.innerHTML = filteredTodos.map(todo => `
-                <div class="todo-item ${todo.completed ? 'completed' : ''}">
-                    <input type="checkbox" 
-                           class="todo-checkbox" 
-                           ${todo.completed ? 'checked' : ''}
-                           onchange="toggleTodo('${todo.id}')">
-                    <div class="todo-content">
-                        <div class="todo-text">${todo.text}</div>
-                        <div class="todo-meta">
-                            <span class="todo-user">👤 ${todo.userName}</span>
-                            <span class="todo-priority priority-${todo.priority}">${todo.priority}</span>
-                            <span>📅 ${new Date(todo.createdAt).toLocaleDateString('id-ID')}</span>
-                            ${todo.completed && todo.completedAt ? 
-                                `<span>✅ ${new Date(todo.completedAt).toLocaleDateString('id-ID')}</span>` : ''}
+            static showModal(title, content, actions = []) {
+                const modal = document.createElement('div');
+                modal.className = 'modal active';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title">${this.escapeHtml(title)}</h2>
+                            <button class="btn btn-ghost" onclick="this.parentElement.parentElement.parentElement.remove()">✕</button>
+                        </div>
+                        <div class="modal-body">${content}</div>
+                        <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+                            ${actions.map(action => 
+                                `<button class="btn ${action.class || 'btn-secondary'}" 
+                                    onclick="${action.onclick}">${this.escapeHtml(action.label)}</button>`
+                            ).join('')}
                         </div>
                     </div>
-                    <div class="todo-actions">
-                        ${todo.userId === currentUser.uid ? `
-                            <button class="action-btn edit-btn" onclick="editTodo('${todo.id}')">✏️</button>
-                            <button class="action-btn delete-btn" onclick="deleteTodo('${todo.id}')">🗑️</button>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
+                `;
+                document.body.appendChild(modal);
+                return modal;
+            }
+
+            static escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            static formatDate(timestamp) {
+                if (!timestamp) return '';
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+
+            static generateId() {
+                return Math.random().toString(36).substr(2, 9);
+            }
         }
 
-        function filterTodos(filter, button) {
-            currentFilter = filter;
-            
-            // Update active button
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            button.classList.add('active');
-            
-            renderTodos();
-        }
+        // Auth Manager
+        class AuthManager {
+            constructor() {
+                this.currentUser = null;
+                this.initAuthListener();
+            }
 
-        function updateStats() {
-            const totalTodos = todos.length;
-            const activeTodos = todos.filter(t => !t.completed).length;
-            const completedTodos = todos.filter(t => t.completed).length;
-            const myTodos = todos.filter(t => t.userId === currentUser.uid).length;
+            initAuthListener() {
+                auth.onAuthStateChanged((user) => {
+                    this.currentUser = user;
+                    this.updateAuthUI();
+                    
+                    if (user) {
+                        this.ensureUserDocument(user);
+                    }
+                });
+            }
 
-            document.getElementById('totalTodos').textContent = totalTodos;
-            document.getElementById('activeTodos').textContent = activeTodos;
-            document.getElementById('completedTodos').textContent = completedTodos;
-            document.getElementById('myTodos').textContent = myTodos;
-        }
+            async signIn() {
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    const result = await auth.signInWithPopup(provider);
+                    UI.showToast('Successfully signed in!', 'success');
+                    router.navigate('#/app');
+                } catch (error) {
+                    UI.showToast('Sign in failed: ' + error.message, 'error');
+                }
+            }
 
-        // Online Users Feature
-        function updateOnlineStatus(isOnline) {
-            if (database && currentUser) {
-                const userStatusRef = database.ref('users/' + currentUser.uid);
+            async signOut() {
+                try {
+                    await auth.signOut();
+                    UI.showToast('Signed out successfully', 'info');
+                    router.navigate('#/');
+                } catch (error) {
+                    UI.showToast('Sign out failed: ' + error.message, 'error');
+                }
+            }
+
+            async ensureUserDocument(user) {
+                const userRef = db.collection('users').doc(user.uid);
+                const doc = await userRef.get();
                 
-                if (isOnline) {
-                    userStatusRef.set({
-                        email: currentUser.email,
-                        displayName: currentUser.displayName || currentUser.email.split('@')[0],
-                        online: true,
-                        lastSeen: firebase.database.ServerValue.TIMESTAMP
+                if (!doc.exists) {
+                    await userRef.set({
+                        username: user.email.split('@')[0],
+                        displayName: user.displayName || 'Anonymous',
+                        photoURL: user.photoURL || '',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        publicProfile: true
+                    });
+                }
+            }
+
+            updateAuthUI() {
+                const authStatus = document.getElementById('authStatus');
+                if (!authStatus) return;
+                
+                if (this.currentUser) {
+                    authStatus.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span>${UI.escapeHtml(this.currentUser.displayName || this.currentUser.email)}</span>
+                            <button onclick="authManager.signOut()" class="btn btn-ghost">Sign Out</button>
+                        </div>
+                    `;
+                } else {
+                    authStatus.innerHTML = `
+                        <button onclick="authManager.signIn()" class="btn btn-primary">Sign In</button>
+                    `;
+                }
+            }
+
+            requireAuth() {
+                if (!this.currentUser) {
+                    router.navigate('#/');
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        // List Manager
+        class ListManager {
+            async createList(title, visibility = 'private') {
+                if (!authManager.currentUser) {
+                    UI.showToast('Please sign in first', 'error');
+                    return;
+                }
+
+                try {
+                    const listRef = await db.collection('lists').add({
+                        title,
+                        ownerId: authManager.currentUser.uid,
+                        ownerName: authManager.currentUser.displayName || 'Anonymous',
+                        visibility,
+                        allowPublicEdit: false,
+                        inviteToken: UI.generateId(),
+                        members: {
+                            [authManager.currentUser.uid]: 'owner'
+                        },
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    userStatusRef.onDisconnect().update({
-                        online: false,
-                        lastSeen: firebase.database.ServerValue.TIMESTAMP
+                    UI.showToast('List created successfully!', 'success');
+                    return listRef.id;
+                } catch (error) {
+                    UI.showToast('Failed to create list: ' + error.message, 'error');
+                }
+            }
+
+            async getUserLists() {
+                if (!authManager.currentUser) return [];
+
+                try {
+                    const owned = await db.collection('lists')
+                        .where('ownerId', '==', authManager.currentUser.uid)
+                        .orderBy('createdAt', 'desc')
+                        .get();
+
+                    const shared = await db.collection('lists')
+                        .where(`members.${authManager.currentUser.uid}`, 'in', ['editor', 'viewer'])
+                        .get();
+
+                    const lists = [];
+                    owned.forEach(doc => lists.push({ id: doc.id, ...doc.data(), type: 'owned' }));
+                    shared.forEach(doc => lists.push({ id: doc.id, ...doc.data(), type: 'shared' }));
+
+                    return lists;
+                } catch (error) {
+                    console.error('Error fetching lists:', error);
+                    return [];
+                }
+            }
+
+            async getPublicLists() {
+                try {
+                    const snapshot = await db.collection('lists')
+                        .where('visibility', '==', 'public')
+                        .orderBy('createdAt', 'desc')
+                        .limit(20)
+                        .get();
+
+                    const lists = [];
+                    snapshot.forEach(doc => lists.push({ id: doc.id, ...doc.data() }));
+                    return lists;
+                } catch (error) {
+                    console.error('Error fetching public lists:', error);
+                    return [];
+                }
+            }
+
+            async updateListVisibility(listId, visibility, allowPublicEdit = false) {
+                try {
+                    await db.collection('lists').doc(listId).update({
+                        visibility,
+                        allowPublicEdit,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                } else {
-                    userStatusRef.update({
-                        online: false,
-                        lastSeen: firebase.database.ServerValue.TIMESTAMP
+
+                    UI.showToast('List visibility updated', 'success');
+                } catch (error) {
+                    UI.showToast('Failed to update visibility: ' + error.message, 'error');
+                }
+            }
+
+            async addMember(listId, email, role) {
+                // In production, you'd resolve email to uid via a cloud function
+                // For demo, we'll just show the concept
+                UI.showToast('Member invitation sent (demo mode)', 'info');
+            }
+
+            getShareLink(listId, inviteToken) {
+                const baseUrl = window.location.origin + window.location.pathname;
+                return `${baseUrl}#/l/${listId}?token=${inviteToken}`;
+            }
+        }
+
+        // Task Manager
+        class TaskManager {
+            async addTask(listId, taskData) {
+                try {
+                    await db.collection('lists').doc(listId).collection('items').add({
+                        title: taskData.title,
+                        completed: false,
+                        assignee: taskData.assignee || null,
+                        due: taskData.due || null,
+                        priority: taskData.priority || 'normal',
+                        notes: taskData.notes || '',
+                        createdBy: authManager.currentUser?.uid || 'anonymous',
+                        updatedBy: authManager.currentUser?.uid || 'anonymous',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
+
+                    // Log activity
+                    await this.logActivity(listId, 'add_item', { title: taskData.title });
+                    
+                    UI.showToast('Task added successfully!', 'success');
+                } catch (error) {
+                    UI.showToast('Failed to add task: ' + error.message, 'error');
+                }
+            }
+
+            async updateTask(listId, taskId, updates) {
+                try {
+                    await db.collection('lists').doc(listId).collection('items').doc(taskId).update({
+                        ...updates,
+                        updatedBy: authManager.currentUser?.uid || 'anonymous',
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    if (updates.completed !== undefined) {
+                        await this.logActivity(listId, 'complete_item', { taskId });
+                    }
+
+                    UI.showToast('Task updated', 'success');
+                } catch (error) {
+                    UI.showToast('Failed to update task: ' + error.message, 'error');
+                }
+            }
+
+            async deleteTask(listId, taskId) {
+                try {
+                    await db.collection('lists').doc(listId).collection('items').doc(taskId).delete();
+                    await this.logActivity(listId, 'delete_item', { taskId });
+                    UI.showToast('Task deleted', 'info');
+                } catch (error) {
+                    UI.showToast('Failed to delete task: ' + error.message, 'error');
+                }
+            }
+
+            async logActivity(listId, type, payload) {
+                try {
+                    await db.collection('lists').doc(listId).collection('activity').add({
+                        type,
+                        actor: authManager.currentUser?.uid || null,
+                        payload,
+                        at: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } catch (error) {
+                    console.error('Failed to log activity:', error);
+                }
+            }
+
+            subscribeToTasks(listId, callback) {
+                return db.collection('lists').doc(listId).collection('items')
+                    .orderBy('createdAt', 'desc')
+                    .onSnapshot(snapshot => {
+                        const tasks = [];
+                        snapshot.forEach(doc => tasks.push({ id: doc.id, ...doc.data() }));
+                        callback(tasks);
+                    });
+            }
+        }
+
+        // Export Manager
+        class ExportManager {
+            async exportToJSON(listId) {
+                try {
+                    const listDoc = await db.collection('lists').doc(listId).get();
+                    const itemsSnapshot = await db.collection('lists').doc(listId).collection('items').get();
+                    
+                    const data = {
+                        list: listDoc.data(),
+                        items: []
+                    };
+                    
+                    itemsSnapshot.forEach(doc => {
+                        data.items.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `todo-list-${listId}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    UI.showToast('List exported as JSON', 'success');
+                } catch (error) {
+                    UI.showToast('Export failed: ' + error.message, 'error');
+                }
+            }
+
+            async exportToCSV(listId) {
+                try {
+                    const itemsSnapshot = await db.collection('lists').doc(listId).collection('items').get();
+                    
+                    let csv = 'Title,Completed,Priority,Due Date,Notes,Created At\n';
+                    
+                    itemsSnapshot.forEach(doc => {
+                        const item = doc.data();
+                        csv += `"${item.title}",${item.completed},${item.priority},${item.due ? UI.formatDate(item.due) : ''},`;
+                        csv += `"${item.notes || ''}",${UI.formatDate(item.createdAt)}\n`;
+                    });
+                    
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `todo-list-${listId}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    UI.showToast('List exported as CSV', 'success');
+                } catch (error) {
+                    UI.showToast('Export failed: ' + error.message, 'error');
                 }
             }
         }
 
-        function listenToOnlineUsers() {
-            if (database) {
-                const usersRef = database.ref('users');
+        // Page Handlers
+        const pages = {
+            home: () => {
+                const app = document.getElementById('app');
                 
-                usersRef.on('value', (snapshot) => {
-                    const onlineUsersList = document.getElementById('onlineUsersList');
-                    let html = '';
+                if (authManager.currentUser) {
+                    router.navigate('#/app');
+                    return;
+                }
+                
+                app.innerHTML = `
+                    <div class="hero">
+                        <div class="container">
+                            <h1>Collaborate on Tasks, Together</h1>
+                            <p>Create, share, and manage to-do lists with your team in real-time</p>
+                            <div class="hero-buttons">
+                                <button onclick="authManager.signIn()" class="btn btn-primary" style="background: white; color: var(--primary);">
+                                    Get Started Free
+                                </button>
+                                <button onclick="pages.viewPublicLists()" class="btn btn-secondary" style="border-color: white; color: white;">
+                                    Browse Public Lists
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     
-                    snapshot.forEach((childSnapshot) => {
-                        const user = childSnapshot.val();
-                        if (user.online) {
-                            html += `
-                                <div class="online-user">
-                                    <span class="online-indicator"></span>
-                                    ${user.displayName}
+                    <section class="features">
+                        <div class="container">
+                            <h2 style="text-align: center; margin-bottom: 2rem;">Features</h2>
+                            <div class="features-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔄</div>
+                                    <h3>Real-time Sync</h3>
+                                    <p>Changes sync instantly across all devices and team members</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">👥</div>
+                                    <h3>Team Collaboration</h3>
+                                    <p>Invite members with viewer or editor roles</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔗</div>
+                                    <h3>Public Sharing</h3>
+                                    <p>Share lists publicly or with a private link</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📱</div>
+                                    <h3>Works Everywhere</h3>
+                                    <p>Desktop, mobile, and offline support</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📊</div>
+                                    <h3>Export Data</h3>
+                                    <p>Export your lists as JSON or CSV files</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔒</div>
+                                    <h3>Privacy Controls</h3>
+                                    <p>Full control over who can view and edit</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            },
+
+            dashboard: async () => {
+                if (!authManager.requireAuth()) return;
+                
+                const app = document.getElementById('app');
+                app.innerHTML = `
+                    <div class="app-container">
+                        <aside class="sidebar">
+                            <button onclick="pages.showCreateListModal()" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
+                                + New List
+                            </button>
+                            
+                            <div id="listsContainer">
+                                <div class="spinner"></div>
+                            </div>
+                        </aside>
+                        
+                        <main class="main-content">
+                            <h1>Welcome back!</h1>
+                            <p>Select a list from the sidebar or create a new one to get started.</p>
+                            
+                            <div style="margin-top: 2rem;">
+                                <h2>Recent Activity</h2>
+                                <div id="recentActivity" class="empty-state">
+                                    <div class="empty-icon">📝</div>
+                                    <p>No recent activity</p>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                `;
+                
+                // Load user's lists
+                const lists = await listManager.getUserLists();
+                const listsContainer = document.getElementById('listsContainer');
+                
+                if (lists.length === 0) {
+                    listsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <p>No lists yet</p>
+                        </div>
+                    `;
+                } else {
+                    listsContainer.innerHTML = `
+                        <div style="margin-bottom: 1rem;">
+                            <h3 style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem;">YOUR LISTS</h3>
+                            ${lists.filter(l => l.type === 'owned').map(list => `
+                                <div class="list-item" onclick="router.navigate('#/l/${list.id}')">
+                                    <span>${UI.escapeHtml(list.title)}</span>
+                                    <span style="font-size: 0.875rem; color: var(--gray);">${list.visibility}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        ${lists.filter(l => l.type === 'shared').length > 0 ? `
+                            <div>
+                                <h3 style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem;">SHARED WITH YOU</h3>
+                                ${lists.filter(l => l.type === 'shared').map(list => `
+                                    <div class="list-item" onclick="router.navigate('#/l/${list.id}')">
+                                        <span>${UI.escapeHtml(list.title)}</span>
+                                        <span style="font-size: 0.875rem; color: var(--gray);">by ${UI.escapeHtml(list.ownerName)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    `;
+                }
+            },
+
+            listView: async (params, query) => {
+                const listId = params.listId;
+                const token = query.token;
+                
+                const app = document.getElementById('app');
+                app.innerHTML = `
+                    <div class="app-container">
+                        <main class="main-content" style="max-width: 900px; margin: 0 auto;">
+                            <div id="listHeader">
+                                <div class="spinner"></div>
+                            </div>
+                            
+                            <div id="taskContainer">
+                                <div class="spinner"></div>
+                            </div>
+                        </main>
+                    </div>
+                `;
+                
+                try {
+                    // Get list data
+                    const listDoc = await db.collection('lists').doc(listId).get();
+                    
+                    if (!listDoc.exists) {
+                        app.innerHTML = '<div class="empty-state"><h2>List not found</h2></div>';
+                        return;
+                    }
+                    
+                    const listData = listDoc.data();
+                    const canEdit = authManager.currentUser && 
+                        (listData.ownerId === authManager.currentUser.uid || 
+                         listData.members[authManager.currentUser.uid] === 'editor' ||
+                         listData.members[authManager.currentUser.uid] === 'owner') ||
+                        listData.allowPublicEdit;
+                    
+                    // Update header
+                    document.getElementById('listHeader').innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <div>
+                                <h1>${UI.escapeHtml(listData.title)}</h1>
+                                <p style="color: var(--gray);">
+                                    Created by ${UI.escapeHtml(listData.ownerName)} • 
+                                    ${listData.visibility === 'public' ? '🌍 Public' : 
+                                      listData.visibility === 'unlisted_link' ? '🔗 Unlisted' : '🔒 Private'}
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                ${canEdit ? `
+                                    <button onclick="pages.showShareModal('${listId}')" class="btn btn-secondary">Share</button>
+                                ` : ''}
+                                <button onclick="exportManager.exportToJSON('${listId}')" class="btn btn-ghost">Export JSON</button>
+                                <button onclick="exportManager.exportToCSV('${listId}')" class="btn btn-ghost">Export CSV</button>
+                            </div>
+                        </div>
+                        
+                        ${canEdit ? `
+                            <div style="background: white; padding: 1rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1rem;">
+                                <form onsubmit="event.preventDefault(); pages.addTask('${listId}', this);" style="display: flex; gap: 0.5rem;">
+                                    <input type="text" name="title" placeholder="Add a new task..." required class="form-input" style="flex: 1;">
+                                    <select name="priority" class="form-select" style="width: 120px;">
+                                        <option value="low">Low</option>
+                                        <option value="normal" selected>Normal</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary">Add Task</button>
+                                </form>
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    // Subscribe to tasks
+                    const unsubscribe = taskManager.subscribeToTasks(listId, (tasks) => {
+                        const container = document.getElementById('taskContainer');
+                        if (!container) return;
+                        
+                        if (tasks.length === 0) {
+                            container.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-icon">✅</div>
+                                    <p>No tasks yet. ${canEdit ? 'Add one above!' : ''}</p>
                                 </div>
                             `;
+                        } else {
+                            container.innerHTML = tasks.map(task => `
+                                <div class="task-item ${task.completed ? 'completed' : ''}">
+                                    ${canEdit ? `
+                                        <input type="checkbox" 
+                                            class="task-checkbox" 
+                                            ${task.completed ? 'checked' : ''}
+                                            onchange="taskManager.updateTask('${listId}', '${task.id}', { completed: this.checked })">
+                                    ` : `
+                                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} disabled>
+                                    `}
+                                    <div class="task-title">${UI.escapeHtml(task.title)}</div>
+                                    <div class="task-meta">
+                                        <span class="priority-badge priority-${task.priority}">${task.priority}</span>
+                                        ${task.due ? `<span>📅 ${UI.formatDate(task.due)}</span>` : ''}
+                                        ${canEdit ? `
+                                            <button onclick="taskManager.deleteTask('${listId}', '${task.id}')" class="btn btn-ghost" style="padding: 0.25rem 0.5rem;">
+                                                🗑️
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('');
                         }
                     });
                     
-                    if (html === '') {
-                        html = '<p style="color: #9ca3af; font-size: 0.85rem;">Tidak ada user online</p>';
-                    }
+                    // Store unsubscribe function for cleanup
+                    window.currentListUnsubscribe = unsubscribe;
                     
-                    onlineUsersList.innerHTML = html;
+                } catch (error) {
+                    console.error('Error loading list:', error);
+                    app.innerHTML = '<div class="empty-state"><h2>Error loading list</h2></div>';
+                }
+            },
+
+            viewPublicLists: async () => {
+                const app = document.getElementById('app');
+                app.innerHTML = `
+                    <div class="container" style="padding: 2rem 20px;">
+                        <h1>Public Lists</h1>
+                        <p style="color: var(--gray); margin-bottom: 2rem;">Discover and collaborate on public to-do lists</p>
+                        
+                        <div id="publicListsGrid" class="features-grid">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                `;
+                
+                const lists = await listManager.getPublicLists();
+                const grid = document.getElementById('publicListsGrid');
+                
+                if (lists.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon">🌍</div>
+                            <p>No public lists available yet</p>
+                        </div>
+                    `;
+                } else {
+                    grid.innerHTML = lists.map(list => `
+                        <div class="feature-card" style="cursor: pointer;" onclick="router.navigate('#/l/${list.id}')">
+                            <h3>${UI.escapeHtml(list.title)}</h3>
+                            <p style="color: var(--gray);">by ${UI.escapeHtml(list.ownerName)}</p>
+                            <p style="font-size: 0.875rem; color: var(--gray);">
+                                Created ${UI.formatDate(list.createdAt)}
+                            </p>
+                            ${list.allowPublicEdit ? '<span class="priority-badge priority-normal">Public Editing</span>' : ''}
+                        </div>
+                    `).join('');
+                }
+            },
+
+            showCreateListModal: () => {
+                const modal = UI.showModal('Create New List', `
+                    <form id="createListForm">
+                        <div class="form-group">
+                            <label class="form-label">List Title</label>
+                            <input type="text" name="title" required class="form-input" placeholder="e.g., Shopping List">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Visibility</label>
+                            <div class="share-options">
+                                <label class="share-option">
+                                    <input type="radio" name="visibility" value="private" checked>
+                                    <div>🔒 Private</div>
+                                </label>
+                                <label class="share-option">
+                                    <input type="radio" name="visibility" value="unlisted_link">
+                                    <div>🔗 Unlisted</div>
+                                </label>
+                                <label class="share-option">
+                                    <input type="radio" name="visibility" value="public">
+                                    <div>🌍 Public</div>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                `, [
+                    { label: 'Cancel', onclick: 'this.closest(".modal").remove()' },
+                    { 
+                        label: 'Create', 
+                        class: 'btn-primary',
+                        onclick: 'pages.createList()'
+                    }
+                ]);
+            },
+
+            createList: async () => {
+                const form = document.getElementById('createListForm');
+                const formData = new FormData(form);
+                
+                const listId = await listManager.createList(
+                    formData.get('title'),
+                    formData.get('visibility')
+                );
+                
+                if (listId) {
+                    document.querySelector('.modal').remove();
+                    router.navigate(`#/l/${listId}`);
+                }
+            },
+
+            showShareModal: async (listId) => {
+                const listDoc = await db.collection('lists').doc(listId).get();
+                const listData = listDoc.data();
+                
+                const shareLink = listManager.getShareLink(listId, listData.inviteToken);
+                
+                UI.showModal('Share List', `
+                    <div class="form-group">
+                        <label class="form-label">Share Link</label>
+                        <div class="share-link">
+                            <input type="text" value="${shareLink}" readonly class="form-input" id="shareLink">
+                            <button onclick="navigator.clipboard.writeText(document.getElementById('shareLink').value); UI.showToast('Link copied!', 'success')" class="btn btn-primary">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Visibility</label>
+                        <select id="visibilitySelect" class="form-select" onchange="pages.updateVisibility('${listId}', this.value)">
+                            <option value="private" ${listData.visibility === 'private' ? 'selected' : ''}>Private</option>
+                            <option value="unlisted_link" ${listData.visibility === 'unlisted_link' ? 'selected' : ''}>Unlisted Link</option>
+                            <option value="public" ${listData.visibility === 'public' ? 'selected' : ''}>Public</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" ${listData.allowPublicEdit ? 'checked' : ''} 
+                                onchange="pages.updatePublicEdit('${listId}', this.checked)">
+                            Allow public editing
+                        </label>
+                    </div>
+                `, [
+                    { label: 'Done', class: 'btn-primary', onclick: 'this.closest(".modal").remove()' }
+                ]);
+            },
+
+            updateVisibility: async (listId, visibility) => {
+                await listManager.updateListVisibility(listId, visibility);
+            },
+
+            updatePublicEdit: async (listId, allowPublicEdit) => {
+                const listDoc = await db.collection('lists').doc(listId).get();
+                const visibility = listDoc.data().visibility;
+                await listManager.updateListVisibility(listId, visibility, allowPublicEdit);
+            },
+
+            addTask: async (listId, form) => {
+                const formData = new FormData(form);
+                await taskManager.addTask(listId, {
+                    title: formData.get('title'),
+                    priority: formData.get('priority')
                 });
+                form.reset();
             }
-        }
+        };
 
-        // Modal Functions
-        function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-            editingTodoId = null;
-        }
+        // Initialize
+        const authManager = new AuthManager();
+        const listManager = new ListManager();
+        const taskManager = new TaskManager();
+        const exportManager = new ExportManager();
+        const router = new Router();
 
-        // Notification Function
-        function showNotification(type, message) {
-            const notification = document.getElementById('notification');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
+        // Set up routes
+        router.addRoute('#/', pages.home);
+        router.addRoute('#/app', pages.dashboard);
+        router.addRoute('#/l/:listId', pages.listView);
+        router.addRoute('#/public', pages.viewPublicLists);
+        router.addRoute('*', () => {
+            document.getElementById('app').innerHTML = '<div class="empty-state"><h2>Page not found</h2></div>';
+        });
 
-        // Event Listeners
-        document.getElementById('todoInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addTodo();
+        // Make functions globally accessible
+        window.authManager = authManager;
+        window.router = router;
+        window.pages = pages;
+        window.listManager = listManager;
+        window.taskManager = taskManager;
+        window.exportManager = exportManager;
+        window.UI = UI;
+
+        // Clean up on navigation
+        window.addEventListener('hashchange', () => {
+            if (window.currentListUnsubscribe) {
+                window.currentListUnsubscribe();
+                window.currentListUnsubscribe = null;
             }
         });
 
-        document.getElementById('editTodoInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                saveEdit();
-            }
-        });
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('editModal');
-            if (event.target === modal) {
-                closeModal();
-            }
+        // Register service worker for PWA (optional)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed'));
         }
     </script>
 </body>
